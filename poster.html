@@ -7,10 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 PDF 生成核心库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- 引入 SVG 转 PDF 插件 -->
-    <script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.3/dist/svg2pdf.umd.min.js"></script>
+    <!-- 引入 html2canvas 用于高保真渲染 -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@700;800&display=swap');
 
         body {
             background: #121212;
@@ -61,6 +61,164 @@
             justify-content: center;
             flex-direction: column;
         }
+
+        /* 浅色主题样式 */
+        body.light-mode {
+            background: #f5f5f5;
+            color: #222;
+        }
+
+        body.light-mode .glass {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        body.light-mode #canvasContainer {
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .upload-area {
+            border-color: #ccc;
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        body.light-mode .upload-area:hover {
+            border-color: #F05F22;
+            background: rgba(240, 95, 34, 0.08);
+        }
+
+        body.light-mode .upload-area p {
+            color: #333 !important;
+        }
+
+        body.light-mode textarea {
+            background: #fff;
+            border-color: #ccc;
+            color: #333;
+        }
+
+        body.light-mode textarea::placeholder {
+            color: #999;
+        }
+
+        body.light-mode footer {
+            border-color: #ddd;
+        }
+
+        /* 浅色模式下的文字颜色修正 */
+        body.light-mode h1 {
+            color: #222 !important;
+        }
+
+        body.light-mode h3 {
+            color: #444 !important;
+        }
+
+        body.light-mode p {
+            color: #555;
+        }
+
+        body.light-mode .text-white {
+            color: #222 !important;
+        }
+
+        body.light-mode .text-gray-400 {
+            color: #555 !important;
+        }
+
+        body.light-mode .text-gray-500 {
+            color: #666 !important;
+        }
+
+        body.light-mode .text-gray-600 {
+            color: #777 !important;
+        }
+
+        body.light-mode .text-gray-700 {
+            color: #444 !important;
+        }
+
+        /* 浅色模式按钮样式 */
+        body.light-mode button {
+            color: #333;
+        }
+
+        body.light-mode button.bg-white {
+            background: #f0f0f0;
+            color: #222;
+        }
+
+        body.light-mode button.bg-white:hover {
+            background: #e0e0e0;
+        }
+
+        body.light-mode #copyBtn,
+        body.light-mode #downloadBtn {
+            background: #fff;
+            border-color: #ccc;
+            color: #333;
+        }
+
+        body.light-mode #copyBtn:hover,
+        body.light-mode #downloadBtn:hover {
+            border-color: #999;
+            background: #f5f5f5;
+        }
+
+        body.light-mode #pdfBtn {
+            color: #fff;
+        }
+
+        /* 浅色模式状态指示 */
+        body.light-mode .font-mono {
+            color: #666 !important;
+        }
+
+        body.light-mode #emptyState p {
+            color: #999 !important;
+        }
+
+        body.light-mode #emptyState .bg-gray-900 {
+            background: #eee !important;
+        }
+
+        body.light-mode #emptyState svg {
+            color: #bbb !important;
+        }
+
+        /* 主题切换按钮样式 */
+        .theme-toggle {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background: #333;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        body.light-mode .theme-toggle {
+            background: #F05F22;
+        }
+
+        body.light-mode .theme-toggle::after {
+            transform: translateX(24px);
+        }
     </style>
 </head>
 
@@ -68,7 +226,7 @@
     <!-- 加载遮罩 -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-sm font-bold tracking-widest uppercase">正在生成印刷级 PDF...</p>
+        <p id="loadingText" class="text-sm font-bold tracking-widest uppercase">正在生成印刷级 PDF...</p>
     </div>
 
     <div class="max-w-6xl mx-auto w-full flex-1 flex flex-col">
@@ -80,8 +238,13 @@
                 <p class="text-gray-500 text-xs mt-1 uppercase tracking-widest">Professional Visual Synthesis System
                     v1.1</p>
             </div>
-            <div class="text-right hidden md:block">
-                <span class="text-[10px] text-gray-600 font-mono">PRINT_READY_BUILD_2025</span>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-500 hidden sm:inline">深色</span>
+                    <div id="themeToggle" class="theme-toggle" title="切换深浅主题"></div>
+                    <span class="text-[10px] text-gray-500 hidden sm:inline">浅色</span>
+                </div>
+                <span class="text-[10px] text-gray-600 font-mono hidden md:block">PRINT_READY_BUILD_2026</span>
             </div>
         </header>
 
@@ -169,19 +332,43 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
 
         let currentImageData = "";
+        const uploadArea = document.querySelector('.upload-area');
+        const loadingText = document.getElementById('loadingText');
 
-        // 处理图片上传
+        // 处理文件的通用函数
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert('请上传有效的图片文件 (JPG/PNG/WEBP)');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                currentImageData = event.target.result;
+                uploadUi.innerHTML = `<p class="text-green-500 text-sm font-bold">✓ ${file.name}</p><p class="text-[10px] text-gray-500 mt-1">高清原图已载入</p>`;
+                updatePreview();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 点击上传
         imageUploader.addEventListener('change', function (e) {
             const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    currentImageData = event.target.result;
-                    uploadUi.innerHTML = `<p class="text-green-500 text-sm font-bold">✓ ${file.name}</p><p class="text-[10px] text-gray-500 mt-1">高清原图已载入</p>`;
-                    updatePreview();
-                };
-                reader.readAsDataURL(file);
-            }
+            if (file) handleFile(file);
+        });
+
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('border-orange-500', 'bg-orange-500/10');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('border-orange-500', 'bg-orange-500/10');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-orange-500', 'bg-orange-500/10');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
         });
 
         // 应用 SVG 代码
@@ -206,102 +393,207 @@
             }
         }
 
-        // 高质量 PDF 导出逻辑
+        // 高质量 PDF 导出逻辑 (使用 Canvas 方案保证视觉一致性)
         document.getElementById('pdfBtn').addEventListener('click', async () => {
             const svgElement = canvasContainer.querySelector('svg');
             if (!svgElement) return alert("请先粘贴并应用 SVG 设计代码");
 
             loadingOverlay.style.display = 'flex';
+            loadingText.textContent = '正在渲染高清图像...';
 
             try {
                 const { jsPDF } = window.jspdf;
 
-                // 获取尺寸并转换为 mm (1px ≈ 0.2646mm)
-                const widthPx = svgElement.viewBox.baseVal.width || 800;
-                const heightPx = svgElement.viewBox.baseVal.height || 600;
+                // 获取 SVG 原始尺寸
+                const widthPx = svgElement.viewBox.baseVal.width || svgElement.clientWidth || 800;
+                const heightPx = svgElement.viewBox.baseVal.height || svgElement.clientHeight || 600;
+
+                // 设置高分辨率缩放 (3x 用于印刷质量)
+                const scale = 3;
+
+                // 创建临时容器，确保 SVG 完全填满且无黑边
+                const tempContainer = document.createElement('div');
+                tempContainer.style.cssText = `
+                    position: fixed;
+                    left: -9999px;
+                    top: 0;
+                    width: ${svgElement.clientWidth}px;
+                    height: ${svgElement.clientHeight}px;
+                    background: white;
+                    overflow: hidden;
+                `;
+                // 克隆 SVG 并放入临时容器
+                const svgClone = svgElement.cloneNode(true);
+                svgClone.style.cssText = `
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                `;
+                tempContainer.appendChild(svgClone);
+                document.body.appendChild(tempContainer);
+
+                // 使用 html2canvas 渲染临时容器
+                const canvas = await html2canvas(tempContainer, {
+                    scale: scale,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                });
+
+                // 移除临时容器
+                document.body.removeChild(tempContainer);
+
+                loadingText.textContent = '正在生成 PDF 文件...';
+
+                // 计算 PDF 尺寸 (mm)
                 const widthMm = widthPx * 0.2646;
                 const heightMm = heightPx * 0.2646;
 
-                // 1. 初始化 PDF (单位 mm)
+                // 裁切标记设置
+                const markMargin = 8;  // 标记区域边距
+                const markLength = 6;  // 标记线长度
+                const markGap = 2;     // 标记与内容的间距
+
+                // PDF 总尺寸 (内容 + 标记区域)
+                const totalWidth = widthMm + markMargin * 2;
+                const totalHeight = heightMm + markMargin * 2;
+
+                // 初始化 PDF
                 const pdf = new jsPDF({
-                    orientation: widthMm > heightMm ? "l" : "p",
+                    orientation: totalWidth > totalHeight ? "l" : "p",
                     unit: "mm",
-                    format: [widthMm, heightMm]
+                    format: [totalWidth, totalHeight]
                 });
 
-                // --- 第 1 页：海报正文 (矢量转换) ---
-                await pdf.svg(svgElement, {
-                    x: 0,
-                    y: 0,
-                    width: widthMm,
-                    height: heightMm
+                // 填充白色背景
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, totalWidth, totalHeight, 'F');
+
+                // --- 第 1 页：海报正文 (高清图像) ---
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                // 图像居中放置
+                pdf.addImage(imgData, 'JPEG', markMargin, markMargin, widthMm, heightMm);
+
+                // 绘制裁切标记 (印刷标准角线)
+                pdf.setDrawColor(0, 0, 0);
+                pdf.setLineWidth(0.25);
+
+                // 内容区域坐标
+                const left = markMargin;
+                const right = markMargin + widthMm;
+                const top = markMargin;
+                const bottom = markMargin + heightMm;
+
+                // 左上角标记
+                pdf.line(left - markGap - markLength, top, left - markGap, top);  // 水平
+                pdf.line(left, top - markGap - markLength, left, top - markGap);  // 垂直
+
+                // 右上角标记
+                pdf.line(right + markGap, top, right + markGap + markLength, top);
+                pdf.line(right, top - markGap - markLength, right, top - markGap);
+
+                // 左下角标记
+                pdf.line(left - markGap - markLength, bottom, left - markGap, bottom);
+                pdf.line(left, bottom + markGap, left, bottom + markGap + markLength);
+
+                // 右下角标记
+                pdf.line(right + markGap, bottom, right + markGap + markLength, bottom);
+                pdf.line(right, bottom + markGap, right, bottom + markGap + markLength);
+
+                // 添加尺寸标注 (显示建议印刷尺寸 = 2倍物理尺寸)
+                const printWidth = Math.round(widthMm * 2);
+                const printHeight = Math.round(heightMm * 2);
+                pdf.setFontSize(6);
+                pdf.setTextColor(128, 128, 128);
+                pdf.text(`${printWidth}×${printHeight}mm`, totalWidth / 2, top - markGap - 1, { align: 'center' });
+                pdf.text('MovePath Print Ready', totalWidth / 2, bottom + markGap + markLength + 3, { align: 'center' });
+
+                // --- 第 2 页：印前技术规格页 (使用 HTML 渲染确保中文正确) ---
+                loadingText.textContent = '正在生成规格说明页...';
+
+                // 创建临时 HTML 元素用于渲染规格页
+                const specPage = document.createElement('div');
+                specPage.style.cssText = `
+                    position: fixed;
+                    left: -9999px;
+                    top: 0;
+                    width: 794px;
+                    height: 1123px;
+                    background: white;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+                    padding: 0;
+                    box-sizing: border-box;
+                `;
+                // 计算建议印刷尺寸 (2倍物理尺寸)
+                const printWidthMm = Math.round(widthMm * 2);
+                const printHeightMm = Math.round(heightMm * 2);
+
+                specPage.innerHTML = `
+                    <div style="background: #F05F22; color: white; padding: 20px 30px; font-size: 24px; font-weight: bold;">
+                        MovePath Engine - 印前技术规格说明
+                    </div>
+                    <div style="padding: 30px; font-size: 16px; line-height: 1.8; color: #333;">
+                        <div style="margin-bottom: 28px;">
+                            <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px;">1. 文件基本信息</div>
+                            <div style="padding-left: 20px;">
+                                <div>• 导出时间: ${new Date().toLocaleString()}</div>
+                                <div>• 原始画布尺寸: ${widthPx}px × ${heightPx}px</div>
+                                <div>• 建议印刷尺寸: ${printWidthMm}mm × ${printHeightMm}mm</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 28px;">
+                            <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px;">2. 技术规格</div>
+                            <div style="padding-left: 20px;">
+                                <div>• 渲染方式: 高分辨率位图渲染 (3倍缩放, 约300 DPI)</div>
+                                <div>• 色彩模式: sRGB 色彩空间，印刷时请转换为 CMYK</div>
+                                <div>• 图像质量: 已按印刷级分辨率导出</div>
+                                <div>• 字体状态: 已栅格化，无需外部字体依赖</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 28px;">
+                            <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px;">3. 品牌标准色卡</div>
+                            <div style="display: flex; align-items: center; padding-left: 20px; margin-top: 10px;">
+                                <div style="width: 60px; height: 60px; background: #F05F22; margin-right: 20px; border-radius: 4px;"></div>
+                                <div>
+                                    <div style="font-weight: bold;">MovePath Orange</div>
+                                    <div>HEX: #F05F22</div>
+                                    <div>建议 CMYK: C0 M76 Y88 K0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="position: absolute; bottom: 30px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px;">
+                        Generated by MovePath Professional Visual System
+                    </div>
+                `;
+                document.body.appendChild(specPage);
+
+                // 渲染规格页为图像
+                const specCanvas = await html2canvas(specPage, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false
                 });
 
-                // --- 第 2 页：印前技术规格页 ---
-                pdf.addPage([210, 297], 'p'); // 固定 A4 尺寸作为说明页
+                // 移除临时元素
+                document.body.removeChild(specPage);
 
-                // 绘制装饰条
-                pdf.setFillColor(240, 95, 34); // MovePath Orange
-                pdf.rect(0, 0, 210, 15, 'F');
-
-                pdf.setTextColor(255, 255, 255);
-                pdf.setFontSize(14);
-                pdf.text("MovePath Engine - 印前技术规格说明", 15, 10);
-
-                pdf.setTextColor(0, 0, 0);
-                pdf.setFontSize(10);
-                let cursorY = 30;
-
-                const drawLine = (text, isTitle = false) => {
-                    if (isTitle) {
-                        pdf.setFont("helvetica", "bold");
-                        pdf.text(text, 15, cursorY);
-                        cursorY += 6;
-                    } else {
-                        pdf.setFont("helvetica", "normal");
-                        pdf.text("  • " + text, 15, cursorY);
-                        cursorY += 8;
-                    }
-                };
-
-                drawLine("1. 文件基本信息", true);
-                drawLine(`导出时间: ${new Date().toLocaleString()}`);
-                drawLine(`原始画布尺寸: ${widthPx}px x ${heightPx}px`);
-                drawLine(`物理建议尺寸: ${Math.round(widthMm)}mm x ${Math.round(heightMm)}mm (不含出血)`);
-                cursorY += 10;
-
-                drawLine("2. 技术规格 (Pre-press Specs)", true);
-                drawLine("矢量处理: 文字与图形均已转换为矢量路径 (Vector Outlined)。");
-                drawLine("色彩模式: 文件采用 sRGB 色彩空间，请印刷厂手动转换为 CMYK 模式。");
-                drawLine("图像质量: 嵌入的位图已按原始分辨率包含在内。");
-                drawLine("字体状态: 无需外部字体依赖，样式已固化。");
-                cursorY += 10;
-
-                drawLine("3. 品牌标准色卡 (Color Swatch)", true);
-                pdf.setFillColor(240, 95, 34);
-                pdf.rect(20, cursorY, 20, 20, 'F');
-                pdf.text("MovePath Orange (Hex: #F05F22)", 45, cursorY + 8);
-                pdf.text("建议转换为: C0 M76 Y88 K0", 45, cursorY + 14);
-                cursorY += 30;
-
-                drawLine("4. 印刷建议", true);
-                drawLine("建议使用 200g-250g 铜版纸或艺术特种纸印刷。");
-                drawLine("请在排版时协助添加 3mm 裁切出血线。");
-                drawLine("如果颜色出现偏差，请优先参考第 3 项中的品牌色卡数值进行校准。");
-
-                // 页码
-                pdf.setFontSize(8);
-                pdf.setTextColor(150);
-                pdf.text("Generated by MovePath Professional Visual System", 105, 285, { align: "center" });
+                // 添加第二页 (A4 尺寸)
+                pdf.addPage([210, 297], 'p');
+                const specImgData = specCanvas.toDataURL('image/jpeg', 0.95);
+                pdf.addImage(specImgData, 'JPEG', 0, 0, 210, 297);
 
                 // 保存
                 pdf.save(`MovePath_Production_v1.1_${Date.now()}.pdf`);
 
             } catch (err) {
                 console.error(err);
-                alert("生成 PDF 失败，请检查 SVG 代码结构是否包含异常标签。");
+                alert("生成 PDF 失败: " + err.message);
             } finally {
                 loadingOverlay.style.display = 'none';
+                loadingText.textContent = '正在生成印刷级 PDF...';
             }
         });
 
@@ -326,6 +618,19 @@
             link.href = url;
             link.download = 'MovePath_Source_' + Date.now() + '.svg';
             link.click();
+        });
+
+        // 深浅主题切换
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('movepath-theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('movepath-theme', isLight ? 'light' : 'dark');
         });
     </script>
 </body>
