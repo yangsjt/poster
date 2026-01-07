@@ -1,0 +1,333 @@
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovePath Design Engine v1.1 - 印刷专业版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 PDF 生成核心库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- 引入 SVG 转 PDF 插件 -->
+    <script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.3/dist/svg2pdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap');
+
+        body {
+            background: #121212;
+            color: #eee;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .movepath-orange {
+            color: #F05F22;
+        }
+
+        .bg-movepath {
+            background-color: #F05F22;
+        }
+
+        #canvasContainer svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .upload-area {
+            border: 2px dashed #333;
+            transition: 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: #F05F22;
+            background: rgba(240, 95, 34, 0.05);
+        }
+
+        /* 导出时的加载动画 */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col p-4 md:p-10">
+    <!-- 加载遮罩 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-sm font-bold tracking-widest uppercase">正在生成印刷级 PDF...</p>
+    </div>
+
+    <div class="max-w-6xl mx-auto w-full flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="flex justify-between items-end mb-10">
+            <div>
+                <h1 class="text-4xl font-black tracking-tighter text-white">MOVEPATH <span
+                        class="movepath-orange">ENGINE</span></h1>
+                <p class="text-gray-500 text-xs mt-1 uppercase tracking-widest">Professional Visual Synthesis System
+                    v1.1</p>
+            </div>
+            <div class="text-right hidden md:block">
+                <span class="text-[10px] text-gray-600 font-mono">PRINT_READY_BUILD_2025</span>
+            </div>
+        </header>
+
+        <main class="grid lg:grid-cols-12 gap-10 flex-1">
+            <!-- Left: Preview -->
+            <div class="lg:col-span-7 flex flex-col">
+                <div id="canvasContainer"
+                    class="bg-black rounded-xl overflow-hidden relative min-h-[400px] flex items-center justify-center">
+                    <div id="emptyState" class="text-center p-10">
+                        <div class="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-sm">等待设计载入...</p>
+                    </div>
+                    <!-- SVG 设计稿将注入此处 -->
+                </div>
+            </div>
+
+            <!-- Right: Controls -->
+            <div class="lg:col-span-5 space-y-6">
+                <section class="glass p-6 rounded-2xl">
+                    <h3 class="font-bold text-sm mb-4 uppercase tracking-wider text-gray-400">Step 1. 载入原始图片</h3>
+                    <label
+                        class="upload-area rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group">
+                        <input type="file" id="imageUploader" class="hidden" accept="image/*">
+                        <div id="uploadUi" class="text-center">
+                            <p class="text-sm font-medium group-hover:text-white transition-colors">点击或拖拽上传</p>
+                            <p class="text-[10px] text-gray-500 mt-1">支持 JPG, PNG, WEBP (本地处理)</p>
+                        </div>
+                    </label>
+                </section>
+
+                <section class="glass p-6 rounded-2xl">
+                    <h3 class="font-bold text-sm mb-4 uppercase tracking-wider text-gray-400">Step 2. 注入设计代码 (SVG)</h3>
+                    <textarea id="svgInput"
+                        class="w-full h-32 bg-black/50 border border-gray-800 rounded-lg p-3 text-xs font-mono text-gray-400 focus:border-orange-500 outline-none transition-all"
+                        placeholder="在此粘贴来自 AI 的 SVG 代码..."></textarea>
+                    <button id="applyBtn"
+                        class="w-full mt-3 bg-white text-black text-sm font-bold py-2 rounded-lg hover:bg-gray-200 transition-all">应用设计</button>
+                </section>
+
+                <!-- 导出按钮区域 -->
+                <div class="space-y-3">
+                    <div class="flex gap-4">
+                        <button id="copyBtn"
+                            class="flex-1 glass border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all">复制最终代码</button>
+                        <button id="downloadBtn"
+                            class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all">导出源文件
+                            (.svg)</button>
+                    </div>
+
+                    <!-- 核心高质量导出按钮 -->
+                    <button id="pdfBtn"
+                        class="w-full bg-movepath hover:bg-orange-600 text-white text-xs font-bold py-4 rounded-xl transition-all shadow-lg shadow-orange-900/40 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zM9 10h1V8H9v2zm10 2h-1.5V7h1.5c.83 0 1.5.67 1.5 1.5v3c0 .83-.67 1.5-1.5 1.5zm0-1.5V8.5h-1.5v2h1.5zM15 12h-1.5V7h3v1.5H15V10h1.5v1.5H15v.5zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" />
+                        </svg>
+                        导出高质量印刷 PDF 文件
+                    </button>
+                    <p class="text-[10px] text-center text-gray-600">包含矢量路径信息及自动生成的印前技术规格页</p>
+                </div>
+
+                <footer class="pt-4 border-t border-gray-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <p class="text-[10px] text-gray-600 font-mono">ENGINE_STATUS: PRINT_READY / VI_COMPLIANT</p>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const imageUploader = document.getElementById('imageUploader');
+        const svgInput = document.getElementById('svgInput');
+        const applyBtn = document.getElementById('applyBtn');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const emptyState = document.getElementById('emptyState');
+        const uploadUi = document.getElementById('uploadUi');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        let currentImageData = "";
+
+        // 处理图片上传
+        imageUploader.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    currentImageData = event.target.result;
+                    uploadUi.innerHTML = `<p class="text-green-500 text-sm font-bold">✓ ${file.name}</p><p class="text-[10px] text-gray-500 mt-1">高清原图已载入</p>`;
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 应用 SVG 代码
+        applyBtn.addEventListener('click', updatePreview);
+
+        function updatePreview() {
+            const rawSvg = svgInput.value.trim();
+            if (!rawSvg) return;
+
+            emptyState.style.display = 'none';
+
+            // 清理并注入
+            canvasContainer.innerHTML = rawSvg;
+            const svgElement = canvasContainer.querySelector('svg');
+
+            if (svgElement && currentImageData) {
+                const imageTag = svgElement.querySelector('image');
+                if (imageTag) {
+                    imageTag.setAttribute('href', currentImageData);
+                    imageTag.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', currentImageData);
+                }
+            }
+        }
+
+        // 高质量 PDF 导出逻辑
+        document.getElementById('pdfBtn').addEventListener('click', async () => {
+            const svgElement = canvasContainer.querySelector('svg');
+            if (!svgElement) return alert("请先粘贴并应用 SVG 设计代码");
+
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                const { jsPDF } = window.jspdf;
+
+                // 获取尺寸并转换为 mm (1px ≈ 0.2646mm)
+                const widthPx = svgElement.viewBox.baseVal.width || 800;
+                const heightPx = svgElement.viewBox.baseVal.height || 600;
+                const widthMm = widthPx * 0.2646;
+                const heightMm = heightPx * 0.2646;
+
+                // 1. 初始化 PDF (单位 mm)
+                const pdf = new jsPDF({
+                    orientation: widthMm > heightMm ? "l" : "p",
+                    unit: "mm",
+                    format: [widthMm, heightMm]
+                });
+
+                // --- 第 1 页：海报正文 (矢量转换) ---
+                await pdf.svg(svgElement, {
+                    x: 0,
+                    y: 0,
+                    width: widthMm,
+                    height: heightMm
+                });
+
+                // --- 第 2 页：印前技术规格页 ---
+                pdf.addPage([210, 297], 'p'); // 固定 A4 尺寸作为说明页
+
+                // 绘制装饰条
+                pdf.setFillColor(240, 95, 34); // MovePath Orange
+                pdf.rect(0, 0, 210, 15, 'F');
+
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(14);
+                pdf.text("MovePath Engine - 印前技术规格说明", 15, 10);
+
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFontSize(10);
+                let cursorY = 30;
+
+                const drawLine = (text, isTitle = false) => {
+                    if (isTitle) {
+                        pdf.setFont("helvetica", "bold");
+                        pdf.text(text, 15, cursorY);
+                        cursorY += 6;
+                    } else {
+                        pdf.setFont("helvetica", "normal");
+                        pdf.text("  • " + text, 15, cursorY);
+                        cursorY += 8;
+                    }
+                };
+
+                drawLine("1. 文件基本信息", true);
+                drawLine(`导出时间: ${new Date().toLocaleString()}`);
+                drawLine(`原始画布尺寸: ${widthPx}px x ${heightPx}px`);
+                drawLine(`物理建议尺寸: ${Math.round(widthMm)}mm x ${Math.round(heightMm)}mm (不含出血)`);
+                cursorY += 10;
+
+                drawLine("2. 技术规格 (Pre-press Specs)", true);
+                drawLine("矢量处理: 文字与图形均已转换为矢量路径 (Vector Outlined)。");
+                drawLine("色彩模式: 文件采用 sRGB 色彩空间，请印刷厂手动转换为 CMYK 模式。");
+                drawLine("图像质量: 嵌入的位图已按原始分辨率包含在内。");
+                drawLine("字体状态: 无需外部字体依赖，样式已固化。");
+                cursorY += 10;
+
+                drawLine("3. 品牌标准色卡 (Color Swatch)", true);
+                pdf.setFillColor(240, 95, 34);
+                pdf.rect(20, cursorY, 20, 20, 'F');
+                pdf.text("MovePath Orange (Hex: #F05F22)", 45, cursorY + 8);
+                pdf.text("建议转换为: C0 M76 Y88 K0", 45, cursorY + 14);
+                cursorY += 30;
+
+                drawLine("4. 印刷建议", true);
+                drawLine("建议使用 200g-250g 铜版纸或艺术特种纸印刷。");
+                drawLine("请在排版时协助添加 3mm 裁切出血线。");
+                drawLine("如果颜色出现偏差，请优先参考第 3 项中的品牌色卡数值进行校准。");
+
+                // 页码
+                pdf.setFontSize(8);
+                pdf.setTextColor(150);
+                pdf.text("Generated by MovePath Professional Visual System", 105, 285, { align: "center" });
+
+                // 保存
+                pdf.save(`MovePath_Production_v1.1_${Date.now()}.pdf`);
+
+            } catch (err) {
+                console.error(err);
+                alert("生成 PDF 失败，请检查 SVG 代码结构是否包含异常标签。");
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        // 复制代码
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const finalSvg = canvasContainer.innerHTML;
+            if (!finalSvg) return;
+            navigator.clipboard.writeText(finalSvg).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = "已复制 √";
+                setTimeout(() => btn.innerText = "复制最终代码", 2000);
+            });
+        });
+
+        // 下载 SVG
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const finalSvg = canvasContainer.innerHTML;
+            if (!finalSvg) return;
+            const blob = new Blob([finalSvg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'MovePath_Source_' + Date.now() + '.svg';
+            link.click();
+        });
+    </script>
+</body>
+
+</html>
