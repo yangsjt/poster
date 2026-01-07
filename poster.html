@@ -154,14 +154,14 @@
             background: #e0e0e0;
         }
 
-        body.light-mode #copyBtn,
+        body.light-mode #editSpecBtn,
         body.light-mode #downloadBtn {
             background: #fff;
             border-color: #ccc;
             color: #333;
         }
 
-        body.light-mode #copyBtn:hover,
+        body.light-mode #editSpecBtn:hover,
         body.light-mode #downloadBtn:hover {
             border-color: #999;
             background: #f5f5f5;
@@ -219,6 +219,212 @@
         body.light-mode .theme-toggle::after {
             transform: translateX(24px);
         }
+
+        /* 侧边编辑面板样式 */
+        .spec-edit-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            height: 100%;
+            background: #1a1a1a;
+            z-index: 45;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .spec-edit-panel.active {
+            right: 0;
+        }
+
+        .spec-edit-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .spec-edit-panel .panel-header h3 {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .spec-edit-panel .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #333;
+            color: #999;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .spec-edit-panel .close-btn:hover {
+            background: #F05F22;
+            color: #fff;
+        }
+
+        .spec-edit-panel .panel-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .spec-edit-panel .field-group {
+            margin-bottom: 20px;
+        }
+
+        .spec-edit-panel label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .spec-edit-panel input {
+            width: 100%;
+            padding: 12px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .spec-edit-panel input:focus {
+            border-color: #F05F22;
+        }
+
+        .spec-edit-panel .size-inputs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .spec-edit-panel .size-inputs input {
+            flex: 1;
+        }
+
+        .spec-edit-panel .size-inputs span {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .spec-edit-panel .color-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .spec-edit-panel .color-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            border: 2px solid #333;
+        }
+
+        .spec-edit-panel .panel-footer {
+            padding: 20px;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 12px;
+        }
+
+        .spec-edit-panel .btn-cancel {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid #444;
+            color: #999;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .spec-edit-panel .btn-cancel:hover {
+            border-color: #666;
+            color: #fff;
+        }
+
+        .spec-edit-panel .btn-confirm {
+            flex: 2;
+            padding: 14px;
+            background: #F05F22;
+            border: none;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .spec-edit-panel .btn-confirm:hover {
+            background: #d54d1a;
+        }
+
+        /* 面板遮罩 */
+        .panel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 44;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 浅色模式下的面板样式 */
+        body.light-mode .spec-edit-panel {
+            background: #fff;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        body.light-mode .spec-edit-panel .panel-header {
+            border-color: #eee;
+        }
+
+        body.light-mode .spec-edit-panel .panel-header h3 {
+            color: #222;
+        }
+
+        body.light-mode .spec-edit-panel .close-btn {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        body.light-mode .spec-edit-panel input {
+            background: #f5f5f5;
+            border-color: #ddd;
+            color: #333;
+        }
+
+        body.light-mode .spec-edit-panel .panel-footer {
+            border-color: #eee;
+        }
+
+        body.light-mode .spec-edit-panel .btn-cancel {
+            border-color: #ddd;
+            color: #666;
+        }
     </style>
 </head>
 
@@ -227,6 +433,50 @@
     <div id="loadingOverlay" class="loading-overlay">
         <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <p id="loadingText" class="text-sm font-bold tracking-widest uppercase">正在生成印刷级 PDF...</p>
+    </div>
+
+    <!-- 编辑面板遮罩 -->
+    <div id="panelOverlay" class="panel-overlay"></div>
+
+    <!-- 侧边编辑面板 -->
+    <div id="specEditPanel" class="spec-edit-panel">
+        <div class="panel-header">
+            <h3>编辑印刷规格说明</h3>
+            <button id="closePanelBtn" class="close-btn">×</button>
+        </div>
+        <div class="panel-content">
+            <div class="field-group">
+                <label>标题</label>
+                <input type="text" id="specTitle" value="MovePath Engine - 印前技术规格说明">
+            </div>
+
+            <div class="field-group">
+                <label>建议印刷尺寸 (mm)</label>
+                <div class="size-inputs">
+                    <input type="number" id="specWidth" placeholder="宽度">
+                    <span>×</span>
+                    <input type="number" id="specHeight" placeholder="高度">
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>品牌色 HEX</label>
+                <input type="text" id="specColorHex" value="#F05F22">
+                <div class="color-preview">
+                    <div id="colorPreviewBox" class="color-box" style="background: #F05F22;"></div>
+                    <span class="text-xs text-gray-500">实时预览</span>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>品牌色 CMYK</label>
+                <input type="text" id="specColorCMYK" value="C0 M76 Y88 K0">
+            </div>
+        </div>
+        <div class="panel-footer">
+            <button id="cancelEditBtn" class="btn-cancel">取消</button>
+            <button id="confirmEditBtn" class="btn-confirm">确认并导出 PDF</button>
+        </div>
     </div>
 
     <div class="max-w-6xl mx-auto w-full flex-1 flex flex-col">
@@ -293,23 +543,27 @@
                 <!-- 导出按钮区域 -->
                 <div class="space-y-3">
                     <div class="flex gap-4">
-                        <button id="copyBtn"
-                            class="flex-1 glass border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all">复制最终代码</button>
+                        <button id="editSpecBtn"
+                            class="flex-1 glass border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            印刷说明编辑
+                        </button>
                         <button id="downloadBtn"
-                            class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all">导出源文件
-                            (.svg)</button>
+                            class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all">导出源文件 (.svg)</button>
                     </div>
 
-                    <!-- 核心高质量导出按钮 -->
+                    <!-- PDF 导出按钮 -->
                     <button id="pdfBtn"
                         class="w-full bg-movepath hover:bg-orange-600 text-white text-xs font-bold py-4 rounded-xl transition-all shadow-lg shadow-orange-900/40 flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path
                                 d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zM9 10h1V8H9v2zm10 2h-1.5V7h1.5c.83 0 1.5.67 1.5 1.5v3c0 .83-.67 1.5-1.5 1.5zm0-1.5V8.5h-1.5v2h1.5zM15 12h-1.5V7h3v1.5H15V10h1.5v1.5H15v.5zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" />
                         </svg>
-                        导出高质量印刷 PDF 文件
+                        导出印刷 PDF
                     </button>
-                    <p class="text-[10px] text-center text-gray-600">包含矢量路径信息及自动生成的印前技术规格页</p>
+                    <p class="text-[10px] text-center text-gray-600">自动生成印前技术规格页</p>
                 </div>
 
                 <footer class="pt-4 border-t border-gray-800">
@@ -501,12 +755,12 @@
                 pdf.line(right + markGap, bottom, right + markGap + markLength, bottom);
                 pdf.line(right, bottom + markGap, right, bottom + markGap + markLength);
 
-                // 添加尺寸标注 (显示建议印刷尺寸 = 2倍物理尺寸)
-                const printWidth = Math.round(widthMm * 2);
-                const printHeight = Math.round(heightMm * 2);
+                // 添加尺寸标注 (使用自定义尺寸或默认2倍物理尺寸)
+                const labelWidth = customSpecData?.width || Math.round(widthMm * 2);
+                const labelHeight = customSpecData?.height || Math.round(heightMm * 2);
                 pdf.setFontSize(6);
                 pdf.setTextColor(128, 128, 128);
-                pdf.text(`${printWidth}×${printHeight}mm`, totalWidth / 2, top - markGap - 1, { align: 'center' });
+                pdf.text(`${labelWidth}×${labelHeight}mm`, totalWidth / 2, top - markGap - 1, { align: 'center' });
                 pdf.text('MovePath Print Ready', totalWidth / 2, bottom + markGap + markLength + 3, { align: 'center' });
 
                 // --- 第 2 页：印前技术规格页 (使用 HTML 渲染确保中文正确) ---
@@ -525,13 +779,18 @@
                     padding: 0;
                     box-sizing: border-box;
                 `;
-                // 计算建议印刷尺寸 (2倍物理尺寸)
-                const printWidthMm = Math.round(widthMm * 2);
-                const printHeightMm = Math.round(heightMm * 2);
+                // 使用自定义数据或默认值
+                const specData = {
+                    title: customSpecData?.title || 'MovePath Engine - 印前技术规格说明',
+                    printWidth: customSpecData?.width || Math.round(widthMm * 2),
+                    printHeight: customSpecData?.height || Math.round(heightMm * 2),
+                    colorHex: customSpecData?.colorHex || '#F05F22',
+                    colorCMYK: customSpecData?.colorCMYK || 'C0 M76 Y88 K0'
+                };
 
                 specPage.innerHTML = `
-                    <div style="background: #F05F22; color: white; padding: 20px 30px; font-size: 24px; font-weight: bold;">
-                        MovePath Engine - 印前技术规格说明
+                    <div style="background: ${specData.colorHex}; color: white; padding: 20px 30px; font-size: 24px; font-weight: bold;">
+                        ${specData.title}
                     </div>
                     <div style="padding: 30px; font-size: 16px; line-height: 1.8; color: #333;">
                         <div style="margin-bottom: 28px;">
@@ -539,7 +798,7 @@
                             <div style="padding-left: 20px;">
                                 <div>• 导出时间: ${new Date().toLocaleString()}</div>
                                 <div>• 原始画布尺寸: ${widthPx}px × ${heightPx}px</div>
-                                <div>• 建议印刷尺寸: ${printWidthMm}mm × ${printHeightMm}mm</div>
+                                <div>• 建议印刷尺寸: ${specData.printWidth}mm × ${specData.printHeight}mm</div>
                             </div>
                         </div>
                         <div style="margin-bottom: 28px;">
@@ -554,11 +813,11 @@
                         <div style="margin-bottom: 28px;">
                             <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px;">3. 品牌标准色卡</div>
                             <div style="display: flex; align-items: center; padding-left: 20px; margin-top: 10px;">
-                                <div style="width: 60px; height: 60px; background: #F05F22; margin-right: 20px; border-radius: 4px;"></div>
+                                <div style="width: 60px; height: 60px; background: ${specData.colorHex}; margin-right: 20px; border-radius: 4px;"></div>
                                 <div>
                                     <div style="font-weight: bold;">MovePath Orange</div>
-                                    <div>HEX: #F05F22</div>
-                                    <div>建议 CMYK: C0 M76 Y88 K0</div>
+                                    <div>HEX: ${specData.colorHex}</div>
+                                    <div>建议 CMYK: ${specData.colorCMYK}</div>
                                 </div>
                             </div>
                         </div>
@@ -567,6 +826,9 @@
                         Generated by MovePath Professional Visual System
                     </div>
                 `;
+
+                // 导出后重置自定义数据
+                customSpecData = null;
                 document.body.appendChild(specPage);
 
                 // 渲染规格页为图像
@@ -597,15 +859,72 @@
             }
         });
 
-        // 复制代码
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            const finalSvg = canvasContainer.innerHTML;
-            if (!finalSvg) return;
-            navigator.clipboard.writeText(finalSvg).then(() => {
-                const btn = document.getElementById('copyBtn');
-                btn.innerText = "已复制 √";
-                setTimeout(() => btn.innerText = "复制最终代码", 2000);
-            });
+        // ========== 印刷编辑面板逻辑 ==========
+        const specEditPanel = document.getElementById('specEditPanel');
+        const panelOverlay = document.getElementById('panelOverlay');
+        const editSpecBtn = document.getElementById('editSpecBtn');
+        const closePanelBtn = document.getElementById('closePanelBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const confirmEditBtn = document.getElementById('confirmEditBtn');
+        const specTitle = document.getElementById('specTitle');
+        const specWidthInput = document.getElementById('specWidth');
+        const specHeightInput = document.getElementById('specHeight');
+        const specColorHex = document.getElementById('specColorHex');
+        const specColorCMYK = document.getElementById('specColorCMYK');
+        const colorPreviewBox = document.getElementById('colorPreviewBox');
+
+        // 自定义规格数据
+        let customSpecData = null;
+
+        // 打开编辑面板
+        editSpecBtn.addEventListener('click', () => {
+            const svgElement = canvasContainer.querySelector('svg');
+            if (!svgElement) {
+                alert('请先粘贴并应用 SVG 设计代码');
+                return;
+            }
+
+            // 计算并填充当前尺寸
+            const widthPx = svgElement.viewBox.baseVal.width || svgElement.clientWidth || 800;
+            const heightPx = svgElement.viewBox.baseVal.height || svgElement.clientHeight || 600;
+            specWidthInput.value = Math.round(widthPx * 0.2646 * 2);
+            specHeightInput.value = Math.round(heightPx * 0.2646 * 2);
+
+            // 显示面板
+            specEditPanel.classList.add('active');
+            panelOverlay.classList.add('active');
+        });
+
+        // 关闭面板
+        function closePanel() {
+            specEditPanel.classList.remove('active');
+            panelOverlay.classList.remove('active');
+        }
+
+        closePanelBtn.addEventListener('click', closePanel);
+        cancelEditBtn.addEventListener('click', closePanel);
+        panelOverlay.addEventListener('click', closePanel);
+
+        // 颜色实时预览
+        specColorHex.addEventListener('input', (e) => {
+            const color = e.target.value;
+            if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                colorPreviewBox.style.background = color;
+            }
+        });
+
+        // 确认编辑并导出 PDF
+        confirmEditBtn.addEventListener('click', () => {
+            customSpecData = {
+                title: specTitle.value.trim() || 'MovePath Engine - 印前技术规格说明',
+                width: parseInt(specWidthInput.value) || 0,
+                height: parseInt(specHeightInput.value) || 0,
+                colorHex: specColorHex.value.trim() || '#F05F22',
+                colorCMYK: specColorCMYK.value.trim() || 'C0 M76 Y88 K0'
+            };
+            closePanel();
+            // 触发 PDF 导出
+            document.getElementById('pdfBtn').click();
         });
 
         // 下载 SVG
