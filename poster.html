@@ -554,6 +554,20 @@
                             class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all">导出源文件 (.svg)</button>
                     </div>
 
+                    <!-- 位图导出按钮 -->
+                    <div class="flex gap-2">
+                        <button id="jpgBtn"
+                            class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"/></svg>
+                            导出 JPG
+                        </button>
+                        <button id="pngBtn"
+                            class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"/></svg>
+                            导出 PNG
+                        </button>
+                    </div>
+
                     <!-- PDF 导出按钮 -->
                     <button id="pdfBtn"
                         class="w-full bg-movepath hover:bg-orange-600 text-white text-xs font-bold py-4 rounded-xl transition-all shadow-lg shadow-orange-900/40 flex items-center justify-center gap-2">
@@ -563,7 +577,11 @@
                         </svg>
                         导出印刷 PDF
                     </button>
-                    <p class="text-[10px] text-center text-gray-600">自动生成印前技术规格页</p>
+                    <label class="flex items-center justify-center gap-2 text-[10px] text-gray-500 cursor-pointer mt-2 hover:text-gray-400 transition-colors">
+                        <input type="checkbox" id="bleedCheckbox" class="w-3 h-3 accent-orange-500 cursor-pointer">
+                        保留出血线导出 (3mm)
+                    </label>
+                    <p class="text-[10px] text-center text-gray-600 mt-1">自动生成印前技术规格页</p>
                 </div>
 
                 <footer class="pt-4 border-t border-gray-800">
@@ -584,6 +602,10 @@
         const emptyState = document.getElementById('emptyState');
         const uploadUi = document.getElementById('uploadUi');
         const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // 印刷导出常量
+        const BLEED_MM = 3;     // 标准印刷出血位 3mm
+        const EXPORT_SCALE = 2; // 导出分辨率倍数 (约 200 DPI)
 
         let currentImageData = "";
         const uploadArea = document.querySelector('.upload-area');
@@ -658,25 +680,44 @@
             try {
                 const { jsPDF } = window.jspdf;
 
-                // 获取 SVG 原始尺寸
-                const widthPx = svgElement.viewBox.baseVal.width || svgElement.clientWidth || 800;
-                const heightPx = svgElement.viewBox.baseVal.height || svgElement.clientHeight || 600;
+                // 获取出血线复选框状态
+                const includeBleed = document.getElementById('bleedCheckbox').checked;
+                const bleedMm = includeBleed ? BLEED_MM : 0;
 
-                // 设置高分辨率缩放 (3x 用于印刷质量)
-                const scale = 3;
+                // 获取 SVG viewBox 原始尺寸和比例
+                const viewBox = svgElement.viewBox.baseVal;
+                const widthPx = viewBox.width || svgElement.clientWidth || 800;
+                const heightPx = viewBox.height || svgElement.clientHeight || 600;
+                const originalAspectRatio = widthPx / heightPx;
 
-                // 创建临时容器，确保 SVG 完全填满且无黑边
+                // 计算内容尺寸 (mm) - 使用用户指定尺寸或默认计算
+                const contentWidthMm = customSpecData?.width || Math.round(widthPx * 0.2646 * 2);
+                const contentHeightMm = customSpecData?.height || Math.round(heightPx * 0.2646 * 2);
+
+                // 计算用户指定的宽高比（用于缩放图片）
+                const targetAspectRatio = contentWidthMm / contentHeightMm;
+
+                // 添加出血位后的完整尺寸（如果启用）
+                const outputWidthMm = contentWidthMm + bleedMm * 2;
+                const outputHeightMm = contentHeightMm + bleedMm * 2;
+
+                // 始终使用 SVG 原始像素尺寸渲染（保证质量）
+                const renderWidthPx = widthPx;
+                const renderHeightPx = heightPx;
+
+                // 创建临时容器
                 const tempContainer = document.createElement('div');
                 tempContainer.style.cssText = `
                     position: fixed;
                     left: -9999px;
                     top: 0;
-                    width: ${svgElement.clientWidth}px;
-                    height: ${svgElement.clientHeight}px;
+                    width: ${renderWidthPx}px;
+                    height: ${renderHeightPx}px;
                     background: white;
                     overflow: hidden;
                 `;
-                // 克隆 SVG 并放入临时容器
+
+                // 克隆 SVG
                 const svgClone = svgElement.cloneNode(true);
                 svgClone.style.cssText = `
                     display: block;
@@ -688,7 +729,7 @@
 
                 // 使用 html2canvas 渲染临时容器
                 const canvas = await html2canvas(tempContainer, {
-                    scale: scale,
+                    scale: EXPORT_SCALE,
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
@@ -700,18 +741,14 @@
 
                 loadingText.textContent = '正在生成 PDF 文件...';
 
-                // 计算 PDF 尺寸 (mm)
-                const widthMm = widthPx * 0.2646;
-                const heightMm = heightPx * 0.2646;
-
-                // 裁切标记设置
-                const markMargin = 8;  // 标记区域边距
+                // 裁切标记设置（仅在启用出血位时使用）
+                const markMargin = includeBleed ? 8 : 0;  // 标记区域边距
                 const markLength = 6;  // 标记线长度
                 const markGap = 2;     // 标记与内容的间距
 
-                // PDF 总尺寸 (内容 + 标记区域)
-                const totalWidth = widthMm + markMargin * 2;
-                const totalHeight = heightMm + markMargin * 2;
+                // PDF 总尺寸
+                const totalWidth = outputWidthMm + markMargin * 2;
+                const totalHeight = outputHeightMm + markMargin * 2;
 
                 // 初始化 PDF
                 const pdf = new jsPDF({
@@ -726,42 +763,44 @@
 
                 // --- 第 1 页：海报正文 (高清图像) ---
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                // 图像居中放置
-                pdf.addImage(imgData, 'JPEG', markMargin, markMargin, widthMm, heightMm);
+                // 图像放置（勾选出血时居中放置在出血区域内）
+                const imgX = markMargin + bleedMm;
+                const imgY = markMargin + bleedMm;
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, contentWidthMm, contentHeightMm);
 
-                // 绘制裁切标记 (印刷标准角线)
-                pdf.setDrawColor(0, 0, 0);
-                pdf.setLineWidth(0.25);
+                // 仅在启用出血位时绘制裁切标记
+                if (includeBleed) {
+                    pdf.setDrawColor(0, 0, 0);
+                    pdf.setLineWidth(0.25);
 
-                // 内容区域坐标
-                const left = markMargin;
-                const right = markMargin + widthMm;
-                const top = markMargin;
-                const bottom = markMargin + heightMm;
+                    // 裁切线位置（成品尺寸边界，不含出血位）
+                    const left = markMargin + bleedMm;
+                    const right = markMargin + bleedMm + contentWidthMm;
+                    const top = markMargin + bleedMm;
+                    const bottom = markMargin + bleedMm + contentHeightMm;
 
-                // 左上角标记
-                pdf.line(left - markGap - markLength, top, left - markGap, top);  // 水平
-                pdf.line(left, top - markGap - markLength, left, top - markGap);  // 垂直
+                    // 左上角标记
+                    pdf.line(left - bleedMm - markGap - markLength, top, left - bleedMm - markGap, top);  // 水平
+                    pdf.line(left, top - bleedMm - markGap - markLength, left, top - bleedMm - markGap);  // 垂直
 
-                // 右上角标记
-                pdf.line(right + markGap, top, right + markGap + markLength, top);
-                pdf.line(right, top - markGap - markLength, right, top - markGap);
+                    // 右上角标记
+                    pdf.line(right + bleedMm + markGap, top, right + bleedMm + markGap + markLength, top);
+                    pdf.line(right, top - bleedMm - markGap - markLength, right, top - bleedMm - markGap);
 
-                // 左下角标记
-                pdf.line(left - markGap - markLength, bottom, left - markGap, bottom);
-                pdf.line(left, bottom + markGap, left, bottom + markGap + markLength);
+                    // 左下角标记
+                    pdf.line(left - bleedMm - markGap - markLength, bottom, left - bleedMm - markGap, bottom);
+                    pdf.line(left, bottom + bleedMm + markGap, left, bottom + bleedMm + markGap + markLength);
 
-                // 右下角标记
-                pdf.line(right + markGap, bottom, right + markGap + markLength, bottom);
-                pdf.line(right, bottom + markGap, right, bottom + markGap + markLength);
+                    // 右下角标记
+                    pdf.line(right + bleedMm + markGap, bottom, right + bleedMm + markGap + markLength, bottom);
+                    pdf.line(right, bottom + bleedMm + markGap, right, bottom + bleedMm + markGap + markLength);
 
-                // 添加尺寸标注 (使用自定义尺寸或默认2倍物理尺寸)
-                const labelWidth = customSpecData?.width || Math.round(widthMm * 2);
-                const labelHeight = customSpecData?.height || Math.round(heightMm * 2);
-                pdf.setFontSize(6);
-                pdf.setTextColor(128, 128, 128);
-                pdf.text(`${labelWidth}×${labelHeight}mm`, totalWidth / 2, top - markGap - 1, { align: 'center' });
-                pdf.text('MovePath Print Ready', totalWidth / 2, bottom + markGap + markLength + 3, { align: 'center' });
+                    // 添加尺寸标注
+                    pdf.setFontSize(6);
+                    pdf.setTextColor(128, 128, 128);
+                    pdf.text(`${contentWidthMm}×${contentHeightMm}mm (含${BLEED_MM}mm出血)`, totalWidth / 2, top - bleedMm - markGap - 1, { align: 'center' });
+                    pdf.text('MovePath Print Ready', totalWidth / 2, bottom + bleedMm + markGap + markLength + 3, { align: 'center' });
+                }
 
                 // --- 第 2 页：印前技术规格页 (使用 HTML 渲染确保中文正确) ---
                 loadingText.textContent = '正在生成规格说明页...';
@@ -782,11 +821,20 @@
                 // 使用自定义数据或默认值
                 const specData = {
                     title: customSpecData?.title || 'MovePath Engine - 印前技术规格说明',
-                    printWidth: customSpecData?.width || Math.round(widthMm * 2),
-                    printHeight: customSpecData?.height || Math.round(heightMm * 2),
+                    printWidth: contentWidthMm,
+                    printHeight: contentHeightMm,
                     colorHex: customSpecData?.colorHex || '#F05F22',
                     colorCMYK: customSpecData?.colorCMYK || 'C0 M76 Y88 K0'
                 };
+
+                // 根据是否启用出血位生成不同的信息
+                const bleedInfo = includeBleed
+                    ? `<div>• 出血尺寸: ${outputWidthMm}mm × ${outputHeightMm}mm (含${BLEED_MM}mm出血位)</div>`
+                    : `<div>• 出血位: 未启用</div>`;
+
+                const bleedSpec = includeBleed
+                    ? `<div>• 出血位: ${BLEED_MM}mm (四边)</div>`
+                    : `<div>• 出血位: 未启用（成品边缘无额外区域）</div>`;
 
                 specPage.innerHTML = `
                     <div style="background: ${specData.colorHex}; color: white; padding: 20px 30px; font-size: 24px; font-weight: bold;">
@@ -798,13 +846,15 @@
                             <div style="padding-left: 20px;">
                                 <div>• 导出时间: ${new Date().toLocaleString()}</div>
                                 <div>• 原始画布尺寸: ${widthPx}px × ${heightPx}px</div>
-                                <div>• 建议印刷尺寸: ${specData.printWidth}mm × ${specData.printHeight}mm</div>
+                                <div>• 成品尺寸: ${specData.printWidth}mm × ${specData.printHeight}mm</div>
+                                ${bleedInfo}
                             </div>
                         </div>
                         <div style="margin-bottom: 28px;">
                             <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px;">2. 技术规格</div>
                             <div style="padding-left: 20px;">
-                                <div>• 渲染方式: 高分辨率位图渲染 (3倍缩放, 约300 DPI)</div>
+                                <div>• 渲染方式: 高分辨率位图渲染 (${EXPORT_SCALE}倍缩放, 约${EXPORT_SCALE * 100} DPI)</div>
+                                ${bleedSpec}
                                 <div>• 色彩模式: sRGB 色彩空间，印刷时请转换为 CMYK</div>
                                 <div>• 图像质量: 已按印刷级分辨率导出</div>
                                 <div>• 字体状态: 已栅格化，无需外部字体依赖</div>
@@ -858,6 +908,73 @@
                 loadingText.textContent = '正在生成印刷级 PDF...';
             }
         });
+
+        // ========== JPG/PNG 位图导出逻辑 ==========
+        async function exportAsImage(format) {
+            const svgElement = canvasContainer.querySelector('svg');
+            if (!svgElement) return alert("请先粘贴并应用 SVG 设计代码");
+
+            loadingOverlay.style.display = 'flex';
+            loadingText.textContent = `正在生成 ${format.toUpperCase()} 图像...`;
+
+            try {
+                // 获取 SVG viewBox 原始尺寸
+                const viewBox = svgElement.viewBox.baseVal;
+                const width = viewBox.width || svgElement.clientWidth || 800;
+                const height = viewBox.height || svgElement.clientHeight || 600;
+
+                // 创建临时容器
+                const tempContainer = document.createElement('div');
+                tempContainer.style.cssText = `
+                    position: fixed;
+                    left: -9999px;
+                    top: 0;
+                    width: ${width}px;
+                    height: ${height}px;
+                    background: ${format === 'png' ? 'transparent' : 'white'};
+                    overflow: hidden;
+                `;
+
+                // 克隆 SVG 并设置样式
+                const svgClone = svgElement.cloneNode(true);
+                svgClone.style.cssText = `display: block; width: 100%; height: 100%;`;
+                tempContainer.appendChild(svgClone);
+                document.body.appendChild(tempContainer);
+
+                // 使用 html2canvas 渲染
+                const canvas = await html2canvas(tempContainer, {
+                    scale: EXPORT_SCALE,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: format === 'png' ? null : '#ffffff',
+                    logging: false
+                });
+
+                // 移除临时容器
+                document.body.removeChild(tempContainer);
+
+                // 转换并下载
+                const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+                const quality = format === 'png' ? undefined : 0.95;
+                const dataUrl = canvas.toDataURL(mimeType, quality);
+
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `MovePath_Export_${Date.now()}.${format}`;
+                link.click();
+
+            } catch (err) {
+                console.error(err);
+                alert(`生成 ${format.toUpperCase()} 失败: ` + err.message);
+            } finally {
+                loadingOverlay.style.display = 'none';
+                loadingText.textContent = '正在生成印刷级 PDF...';
+            }
+        }
+
+        // 绑定 JPG/PNG 导出按钮事件
+        document.getElementById('jpgBtn').addEventListener('click', () => exportAsImage('jpg'));
+        document.getElementById('pngBtn').addEventListener('click', () => exportAsImage('png'));
 
         // ========== 印刷编辑面板逻辑 ==========
         const specEditPanel = document.getElementById('specEditPanel');
