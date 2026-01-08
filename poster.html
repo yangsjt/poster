@@ -607,6 +607,143 @@
         const BLEED_MM = 3;     // 标准印刷出血位 3mm
         const EXPORT_SCALE = 2; // 导出分辨率倍数 (约 200 DPI)
 
+        /**
+         * 解析SVG属性值，处理百分比和其他单位
+         * @param {string} value - 属性值
+         * @param {number} reference - 参考值（用于百分比计算）
+         * @returns {number} 解析后的数值
+         */
+        function parseSvgLength(value, reference) {
+            if (!value) return null;
+            const str = String(value).trim();
+            if (str.endsWith('%')) {
+                return (parseFloat(str) / 100) * reference;
+            }
+            const num = parseFloat(str);
+            return isNaN(num) ? null : num;
+        }
+
+        /**
+         * 扩展SVG背景至出血区域，实现全出血(Full Bleed)
+         * @param {SVGElement} svgClone - 克隆的SVG元素
+         * @param {number} bleedPxX - X方向出血像素值
+         * @param {number} bleedPxY - Y方向出血像素值
+         */
+        function extendSvgForBleed(svgClone, bleedPxX, bleedPxY) {
+            // 获取原始viewBox
+            const vb = svgClone.viewBox.baseVal;
+            const origX = vb.x;
+            const origY = vb.y;
+            const origWidth = vb.width;
+            const origHeight = vb.height;
+
+            // 新的viewBox尺寸（包含出血区域）
+            const newViewBoxX = origX - bleedPxX;
+            const newViewBoxY = origY - bleedPxY;
+            const newViewBoxWidth = origWidth + 2 * bleedPxX;
+            const newViewBoxHeight = origHeight + 2 * bleedPxY;
+
+            // 扩展viewBox以包含出血区域
+            svgClone.setAttribute('viewBox',
+                `${newViewBoxX} ${newViewBoxY} ${newViewBoxWidth} ${newViewBoxHeight}`
+            );
+
+            // 查找并扩展背景image元素
+            const bgImage = svgClone.querySelector('image');
+            if (bgImage) {
+                // 解析原始属性值（处理百分比）
+                const imgX = parseSvgLength(bgImage.getAttribute('x'), origWidth) ?? origX;
+                const imgY = parseSvgLength(bgImage.getAttribute('y'), origHeight) ?? origY;
+                const imgWidth = parseSvgLength(bgImage.getAttribute('width'), origWidth) ?? origWidth;
+                const imgHeight = parseSvgLength(bgImage.getAttribute('height'), origHeight) ?? origHeight;
+
+                // 扩展背景图片：向四边各扩展出血像素值
+                bgImage.setAttribute('x', imgX - bleedPxX);
+                bgImage.setAttribute('y', imgY - bleedPxY);
+                bgImage.setAttribute('width', imgWidth + 2 * bleedPxX);
+                bgImage.setAttribute('height', imgHeight + 2 * bleedPxY);
+                // 确保图片填满区域（裁切多余部分）
+                bgImage.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+
+                // 处理image元素上的clipPath（如果存在）
+                const clipPathAttr = bgImage.getAttribute('clip-path');
+                if (clipPathAttr) {
+                    const match = clipPathAttr.match(/url\(#([^)]+)\)/);
+                    if (match) {
+                        const clipPath = svgClone.querySelector(`#${match[1]}`);
+                        if (clipPath) {
+                            extendClipPathRect(clipPath, bleedPxX, bleedPxY, origWidth, origHeight);
+                        }
+                    }
+                }
+
+                // 遍历image的所有祖先元素，扩展它们的clip-path
+                let parent = bgImage.parentElement;
+                while (parent && parent !== svgClone) {
+                    const parentClipPath = parent.getAttribute('clip-path');
+                    if (parentClipPath) {
+                        const match = parentClipPath.match(/url\(#([^)]+)\)/);
+                        if (match) {
+                            const clipPath = svgClone.querySelector(`#${match[1]}`);
+                            if (clipPath) {
+                                extendClipPathRect(clipPath, bleedPxX, bleedPxY, origWidth, origHeight);
+                            }
+                        }
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+
+            // 处理SVG中所有的clipPath（确保不遗漏）
+            const allClipPaths = svgClone.querySelectorAll('clipPath');
+            allClipPaths.forEach(clipPath => {
+                extendClipPathRect(clipPath, bleedPxX, bleedPxY, origWidth, origHeight);
+            });
+        }
+
+        /**
+         * 扩展clipPath中的形状元素
+         */
+        function extendClipPathRect(clipPath, bleedPxX, bleedPxY, origWidth, origHeight) {
+            // 处理rect元素
+            const rect = clipPath.querySelector('rect');
+            if (rect) {
+                const rx = parseSvgLength(rect.getAttribute('x'), origWidth) ?? 0;
+                const ry = parseSvgLength(rect.getAttribute('y'), origHeight) ?? 0;
+                const rw = parseSvgLength(rect.getAttribute('width'), origWidth) ?? origWidth;
+                const rh = parseSvgLength(rect.getAttribute('height'), origHeight) ?? origHeight;
+
+                // 扩展覆盖较大区域的clipPath（背景裁切）
+                // 降低阈值到50%以处理更多情况
+                if (rw >= origWidth * 0.5 && rh >= origHeight * 0.5) {
+                    rect.setAttribute('x', rx - bleedPxX);
+                    rect.setAttribute('y', ry - bleedPxY);
+                    rect.setAttribute('width', rw + 2 * bleedPxX);
+                    rect.setAttribute('height', rh + 2 * bleedPxY);
+                }
+            }
+
+            // 处理path元素（常见于圆角矩形clipPath）
+            const path = clipPath.querySelector('path');
+            if (path && !rect) {
+                // 对于path，我们尝试通过transform来扩展
+                // 获取path的边界框
+                try {
+                    const bbox = path.getBBox();
+                    if (bbox.width >= origWidth * 0.5 && bbox.height >= origHeight * 0.5) {
+                        // 使用transform来扩展path的显示区域
+                        const scaleX = (bbox.width + 2 * bleedPxX) / bbox.width;
+                        const scaleY = (bbox.height + 2 * bleedPxY) / bbox.height;
+                        const translateX = -bleedPxX;
+                        const translateY = -bleedPxY;
+                        path.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${scaleX}, ${scaleY})`);
+                    }
+                } catch (e) {
+                    // getBBox可能在某些情况下失败，忽略错误
+                }
+            }
+        }
+
         let currentImageData = "";
         const uploadArea = document.querySelector('.upload-area');
         const loadingText = document.getElementById('loadingText');
@@ -701,11 +838,15 @@
                 const outputWidthMm = contentWidthMm + bleedMm * 2;
                 const outputHeightMm = contentHeightMm + bleedMm * 2;
 
-                // 始终使用 SVG 原始像素尺寸渲染（保证质量）
-                const renderWidthPx = widthPx;
-                const renderHeightPx = heightPx;
+                // 计算出血像素值（在SVG坐标系中）
+                const bleedPxX = includeBleed ? (bleedMm / contentWidthMm) * widthPx : 0;
+                const bleedPxY = includeBleed ? (bleedMm / contentHeightMm) * heightPx : 0;
 
-                // 创建临时容器
+                // 渲染尺寸（包含出血区域）
+                const renderWidthPx = widthPx + 2 * bleedPxX;
+                const renderHeightPx = heightPx + 2 * bleedPxY;
+
+                // 创建临时容器（尺寸包含出血区域）
                 const tempContainer = document.createElement('div');
                 tempContainer.style.cssText = `
                     position: fixed;
@@ -724,6 +865,12 @@
                     width: 100%;
                     height: 100%;
                 `;
+
+                // 如果启用出血，扩展SVG背景至出血区域
+                if (includeBleed) {
+                    extendSvgForBleed(svgClone, bleedPxX, bleedPxY);
+                }
+
                 tempContainer.appendChild(svgClone);
                 document.body.appendChild(tempContainer);
 
@@ -763,10 +910,13 @@
 
                 // --- 第 1 页：海报正文 (高清图像) ---
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                // 图像放置（勾选出血时居中放置在出血区域内）
-                const imgX = markMargin + bleedMm;
-                const imgY = markMargin + bleedMm;
-                pdf.addImage(imgData, 'JPEG', imgX, imgY, contentWidthMm, contentHeightMm);
+                // 图像放置：启用出血时，图像覆盖整个出血区域（全出血输出）
+                const imgX = markMargin;
+                const imgY = markMargin;
+                // 图像尺寸：启用出血时为含出血的完整尺寸，否则为成品尺寸
+                const imgWidth = includeBleed ? outputWidthMm : contentWidthMm;
+                const imgHeight = includeBleed ? outputHeightMm : contentHeightMm;
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth, imgHeight);
 
                 // 仅在启用出血位时绘制裁切标记
                 if (includeBleed) {
