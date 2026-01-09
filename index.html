@@ -1465,19 +1465,21 @@
         </div>
     </div>
 
-    <div class="min-h-screen flex items-center justify-center bg-black">
-        <textarea id="svgInput"
-            class="w-full max-w-2xl h-96 bg-neutral-900/10 border border-neutral-800/10 rounded-2xl p-10 text-sm font-mono leading-relaxed text-neutral-400 placeholder-neutral-700/20 focus:outline-none focus:border-orange-500/10 transition-all duration-300 resize-none"
-            spellcheck="false"
-            placeholder="<svg>
+    <div class="min-h-screen flex items-center justify-center bg-neutral-950">
+        <div class="w-full max-w-xl px-6">
+            <textarea id="svgInput"
+                class="w-full h-80 bg-neutral-900/50 border-0 rounded-[2rem] p-8 text-sm font-mono leading-loose text-neutral-400 placeholder-neutral-700/40 focus:outline-none focus:ring-4 focus:ring-orange-500/5 transition-all duration-300 resize-none"
+                spellcheck="false"
+                placeholder="<svg>
   <!-- 粘贴 SVG 代码 -->
 </svg>
 
 Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
 
-        <input type="file" id="imageUploader" class="hidden" accept="image/*">
-        <div id="canvasContainer" class="hidden"></div>
-        <button id="pdfBtn" class="hidden">导出 PDF</button>
+            <input type="file" id="imageUploader" class="hidden" accept="image/*">
+            <div id="canvasContainer" class="hidden"></div>
+            <button id="pdfBtn" class="hidden">导出 PDF</button>
+        </div>
     </div>
 
     <script>
