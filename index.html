@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>设计印刷引擎 - 专业海报制作工具</title>
+    <title>MovePath Design Engine v1.1 - 印刷专业版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 PDF 生成核心库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -60,848 +60,6 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
-        }
-
-        /* 帮助提示样式 */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-        }
-
-        .tooltip .tooltip-text {
-            visibility: hidden;
-            background: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px 12px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 11px;
-            white-space: nowrap;
-            max-width: 250px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .tooltip .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent;
-        }
-
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        body.light-mode .tooltip .tooltip-text {
-            background: #fff;
-            color: #333;
-            border: 1px solid #ddd;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        body.light-mode .tooltip .tooltip-text::after {
-            border-color: #fff transparent transparent transparent;
-        }
-
-        /* 步骤指示器 */
-        .step-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .step-number {
-            width: 24px;
-            height: 24px;
-            background: #F05F22;
-            color: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        body.light-mode .step-number {
-            background: #F05F22;
-        }
-
-        .step-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        body.light-mode .step-title {
-            color: #333;
-        }
-
-        /* 快捷按钮组 */
-        .quick-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .quick-action-btn {
-            flex: 1;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: #999;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .quick-action-btn:hover {
-            background: rgba(240, 95, 34, 0.1);
-            border-color: #F05F22;
-            color: #F05F22;
-        }
-
-        body.light-mode .quick-action-btn {
-            background: rgba(0, 0, 0, 0.03);
-            border-color: rgba(0, 0, 0, 0.1);
-            color: #666;
-        }
-
-        body.light-mode .quick-action-btn:hover {
-            background: rgba(240, 95, 34, 0.08);
-            border-color: #F05F22;
-            color: #F05F22;
-        }
-
-        /* 说明文本 */
-        .help-text {
-            font-size: 11px;
-            color: #666;
-            line-height: 1.5;
-            margin-top: 8px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 6px;
-            border-left: 2px solid #F05F22;
-        }
-
-        body.light-mode .help-text {
-            background: rgba(0, 0, 0, 0.02);
-            color: #666;
-        }
-
-        /* 示例模板卡片 */
-        .template-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .template-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-
-        .template-card:hover {
-            background: rgba(240, 95, 34, 0.1);
-            border-color: #F05F22;
-            transform: translateY(-2px);
-        }
-
-        body.light-mode .template-card {
-            background: rgba(0, 0, 0, 0.02);
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .template-card:hover {
-            background: rgba(240, 95, 34, 0.08);
-            border-color: #F05F22;
-        }
-
-        .template-icon {
-            width: 40px;
-            height: 40px;
-            margin: 0 auto 8px;
-            background: rgba(240, 95, 34, 0.2);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .template-icon svg {
-            width: 20px;
-            height: 20px;
-            color: #F05F22;
-        }
-
-        .template-name {
-            font-size: 12px;
-            font-weight: 500;
-            color: #fff;
-            margin-bottom: 4px;
-        }
-
-        body.light-mode .template-name {
-            color: #333;
-        }
-
-        .template-desc {
-            font-size: 10px;
-            color: #666;
-        }
-
-        /* 通知提示框 */
-        .toast-container {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .toast {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 10px;
-            padding: 14px 18px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 280px;
-            max-width: 400px;
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        body.light-mode .toast {
-            background: #fff;
-            border-color: #ddd;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .toast.success {
-            border-left: 3px solid #22c55e;
-        }
-
-        .toast.error {
-            border-left: 3px solid #ef4444;
-        }
-
-        .toast.info {
-            border-left: 3px solid #3b82f6;
-        }
-
-        .toast-icon {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
-        .toast.success .toast-icon {
-            color: #22c55e;
-        }
-
-        .toast.error .toast-icon {
-            color: #ef4444;
-        }
-
-        .toast.info .toast-icon {
-            color: #3b82f6;
-        }
-
-        .toast-content {
-            flex: 1;
-        }
-
-        .toast-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-
-        body.light-mode .toast-title {
-            color: #333;
-        }
-
-        .toast-message {
-            font-size: 11px;
-            color: #999;
-        }
-
-        body.light-mode .toast-message {
-            color: #666;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-
-        .toast.removing {
-            animation: slideOutRight 0.3s ease-in forwards;
-        }
-
-        /* 首屏展示状态 */
-        .hero-empty-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .hero-empty-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 24px;
-            background: linear-gradient(135deg, #F05F22 0%, #ff7a45 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(240, 95, 34, 0.3);
-        }
-
-        .hero-empty-icon svg {
-            width: 40px;
-            height: 40px;
-            color: #fff;
-        }
-
-        .hero-empty-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 12px;
-        }
-
-        body.light-mode .hero-empty-title {
-            color: #333;
-        }
-
-        .hero-empty-desc {
-            font-size: 14px;
-            color: #999;
-            max-width: 400px;
-            margin: 0 auto 24px;
-            line-height: 1.6;
-        }
-
-        .hero-empty-steps {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-top: 32px;
-        }
-
-        .hero-step {
-            text-align: center;
-        }
-
-        .hero-step-number {
-            width: 32px;
-            height: 32px;
-            background: rgba(240, 95, 34, 0.2);
-            color: #F05F22;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            margin: 0 auto 8px;
-        }
-
-        .hero-step-text {
-            font-size: 11px;
-            color: #666;
-        }
-
-        /* 特性横幅 */
-        .features-banner {
-            background: linear-gradient(135deg, rgba(240, 95, 34, 0.1) 0%, rgba(240, 95, 34, 0.05) 100%);
-            border: 1px solid rgba(240, 95, 34, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        body.light-mode .features-banner {
-            background: linear-gradient(135deg, rgba(240, 95, 34, 0.08) 0%, rgba(240, 95, 34, 0.03) 100%);
-            border-color: rgba(240, 95, 34, 0.15);
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 16px;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .feature-icon {
-            width: 36px;
-            height: 36px;
-            background: rgba(240, 95, 34, 0.15);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .feature-icon svg {
-            width: 18px;
-            height: 18px;
-            color: #F05F22;
-        }
-
-        .feature-text {
-            font-size: 11px;
-            color: #999;
-        }
-
-        body.light-mode .feature-text {
-            color: #666;
-        }
-
-        .feature-text strong {
-            display: block;
-            font-size: 12px;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-
-        body.light-mode .feature-text strong {
-            color: #333;
-        }
-
-        /* 进度条加载 */
-        .progress-bar {
-            width: 200px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 16px;
-        }
-
-        body.light-mode .progress-bar {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: #F05F22;
-            border-radius: 2px;
-            transition: width 0.3s ease;
-        }
-
-        .loading-steps {
-            margin-top: 12px;
-            font-size: 11px;
-            color: #999;
-        }
-
-        body.light-mode .loading-steps {
-            color: #666;
-        }
-
-        .loading-step {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-
-        .loading-step.completed {
-            color: #22c55e;
-        }
-
-        .loading-step.completed svg {
-            color: #22c55e;
-        }
-
-        .loading-step svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* CTA按钮 */
-        .cta-button {
-            background: #F05F22;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 24px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 20px;
-        }
-
-        .cta-button:hover {
-            background: #d54d1a;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(240, 95, 34, 0.4);
-        }
-
-        /* 示例图片提示 */
-        .demo-hint {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: rgba(240, 95, 34, 0.1);
-            border-radius: 6px;
-            font-size: 11px;
-            color: #F05F22;
-            margin-top: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .demo-hint:hover {
-            background: rgba(240, 95, 34, 0.2);
-        }
-
-        .demo-hint svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* 使用指南模态框 */
-        .guide-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .guide-modal.active {
-            display: flex;
-        }
-
-        .guide-content {
-            background: #1a1a1a;
-            border-radius: 16px;
-            max-width: 600px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        body.light-mode .guide-content {
-            background: #fff;
-        }
-
-        .guide-header {
-            padding: 24px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        body.light-mode .guide-header {
-            border-color: #eee;
-        }
-
-        .guide-header h2 {
-            font-size: 20px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        body.light-mode .guide-header h2 {
-            color: #222;
-        }
-
-        .guide-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #333;
-            color: #999;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .guide-close:hover {
-            background: #F05F22;
-            color: #fff;
-        }
-
-        .guide-body {
-            padding: 24px;
-        }
-
-        .guide-section {
-            margin-bottom: 24px;
-        }
-
-        .guide-section h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        body.light-mode .guide-section h3 {
-            color: #333;
-        }
-
-        .guide-section p {
-            font-size: 14px;
-            color: #999;
-            line-height: 1.6;
-            margin-bottom: 8px;
-        }
-
-        body.light-mode .guide-section p {
-            color: #666;
-        }
-
-        .guide-example {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
-            font-family: monospace;
-            font-size: 11px;
-            color: #888;
-            overflow-x: auto;
-        }
-
-        body.light-mode .guide-example {
-            background: #f5f5f5;
-            border-color: #ddd;
-            color: #666;
-        }
-
-        /* 帮助按钮 */
-        .help-button {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            background: #F05F22;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(240, 95, 34, 0.4);
-            transition: all 0.3s;
-            z-index: 40;
-        }
-
-        .help-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(240, 95, 34, 0.5);
-        }
-
-        .help-button svg {
-            width: 28px;
-            height: 28px;
-            color: #fff;
-        }
-
-        /* 移动端优化 */
-        @media (max-width: 1024px) {
-            .help-button {
-                bottom: 20px;
-                right: 20px;
-                width: 50px;
-                height: 50px;
-            }
-
-            .help-button svg {
-                width: 24px;
-                height: 24px;
-            }
-        }
-
-        /* 平滑动画 */
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .slide-up {
-            animation: slideUp 0.4s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 按钮点击反馈 */
-        button:active {
-            transform: scale(0.98);
-        }
-
-        /* 卡片悬停效果 */
-        .glass {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .glass:hover {
-            transform: translateY(-2px);
-        }
-
-        body.light-mode .glass:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-        }
-
-        @media (max-width: 1024px) {
-            body {
-                padding: 8px;
-            }
-
-            header {
-                margin-bottom: 16px;
-            }
-
-            header h1 {
-                font-size: 24px;
-            }
-
-            header p {
-                font-size: 12px;
-            }
-
-            .guide-content {
-                max-height: 90vh;
-                margin: 10px;
-            }
-
-            .guide-header {
-                padding: 16px;
-            }
-
-            .guide-header h2 {
-                font-size: 18px;
-            }
-
-            .guide-body {
-                padding: 16px;
-            }
-
-            .guide-section h3 {
-                font-size: 14px;
-            }
-
-            .guide-section p {
-                font-size: 13px;
-            }
-
-            .spec-edit-panel {
-                width: 100%;
-                right: -100%;
-            }
-
-            .step-indicator {
-                margin-bottom: 8px;
-            }
-
-            .help-button {
-                bottom: 16px;
-                right: 16px;
-                width: 48px;
-                height: 48px;
-            }
-
-            .help-button svg {
-                width: 22px;
-                height: 22px;
-            }
-        }
-
-        @media (max-width: 640px) {
-            main {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            #canvasContainer {
-                min-height: 300px;
-            }
-
-            .quick-actions {
-                flex-direction: column;
-            }
         }
 
         /* 浅色主题样式 */
@@ -1324,98 +482,11 @@
     <!-- 加载遮罩 -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p id="loadingText" class="text-sm font-bold tracking-widest uppercase mb-2">正在生成印刷级 PDF...</p>
-        <div class="progress-bar">
-            <div id="progressBar" class="progress-bar-fill" style="width: 0%"></div>
-        </div>
-        <div class="loading-steps" id="loadingSteps">
-            <div class="loading-step" id="step1">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="4 4"/>
-                </svg>
-                <span>准备渲染环境...</span>
-            </div>
-            <div class="loading-step" id="step2">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="4 4"/>
-                </svg>
-                <span>处理设计文件...</span>
-            </div>
-            <div class="loading-step" id="step3">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="4 4"/>
-                </svg>
-                <span>生成印刷规格...</span>
-            </div>
-        </div>
+        <p id="loadingText" class="text-sm font-bold tracking-widest uppercase">正在生成印刷级 PDF...</p>
     </div>
 
     <!-- 编辑面板遮罩 -->
     <div id="panelOverlay" class="panel-overlay"></div>
-
-    <!-- 使用指南模态框 -->
-    <div id="guideModal" class="guide-modal">
-        <div class="guide-content">
-            <div class="guide-header">
-                <h2>🎨 使用指南</h2>
-                <button id="closeGuideBtn" class="guide-close">×</button>
-            </div>
-            <div class="guide-body">
-                <div class="guide-section">
-                    <h3>👋 欢迎使用设计印刷引擎！</h3>
-                    <p>这是一个让普通人也能轻松制作专业海报的工具。不需要设计经验，只需要图片 + AI，即可生成印刷级的 PDF 文件。</p>
-                </div>
-
-                <div class="guide-section">
-                    <h3>🎯 适用场景</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
-                        <div style="background: rgba(240, 95, 34, 0.1); padding: 10px; border-radius: 6px; font-size: 12px;">📄 活动海报</div>
-                        <div style="background: rgba(240, 95, 34, 0.1); padding: 10px; border-radius: 6px; font-size: 12px;">🎨 艺术展览</div>
-                        <div style="background: rgba(240, 95, 34, 0.1); padding: 10px; border-radius: 6px; font-size: 12px;">🎵 音乐演出</div>
-                        <div style="background: rgba(240, 95, 34, 0.1); padding: 10px; border-radius: 6px; font-size: 12px;">📚 书籍封面</div>
-                        <div style="background: rgba(240, 95, 34, 0.1); padding: 10px; border-radius: 6px; font-size: 12px;">🎁 产品宣传</div>
-                        <div style="background: rgba(240, 95, 34, 0.1); padding: 10px; border-radius: 6px; font-size: 12px;">🏢 企业海报</div>
-                    </div>
-                </div>
-
-                <div class="guide-section">
-                    <h3>🚀 快速上手（三种方式）</h3>
-                    <p><strong>方式 1 - 使用模板（推荐新手）：</strong>点击"极简海报"、"文字海报"等模板卡片，系统会自动填入设计代码，您只需上传图片即可。</p>
-                    <p><strong>方式 2 - AI 生成：</strong>使用 ChatGPT、Claude 等 AI 工具，告诉它们您想要的风格，获取 SVG 代码后粘贴到文本框。</p>
-                    <p><strong>方式 3 - 自定义：</strong>如果您会设计，也可以自己编写或修改 SVG 代码。</p>
-                </div>
-
-                <div class="guide-section">
-                    <h3>💬 AI 提示词示例</h3>
-                    <p>复制以下提示词到 AI 工具：</p>
-                    <div class="guide-example">请为这张图片设计一个现代简约风格的海报。要求：
-1. 使用 SVG 格式，尺寸 800x1200
-2. 图片作为主视觉
-3. 底部添加标题区域，包含主标题和副标题
-4. 使用橙色 (#F05F22) 作为点缀色
-5. 整体风格简洁大气
-请直接输出完整的 SVG 代码，我需要将其粘贴到设计工具中。</div>
-                </div>
-
-                <div class="guide-section">
-                    <h3>📤 导出建议</h3>
-                    <p><strong>印刷用途：</strong>选择 PDF 格式，启用出血位选项，填写印刷材质</p>
-                    <p><strong>网络分享：</strong>选择 JPG 或 PNG 格式，质量高且文件小</p>
-                    <p><strong>再次编辑：</strong>保存 SVG 源文件，可用矢量软件编辑</p>
-                </div>
-
-                <div class="guide-section">
-                    <h3>💡 常见问题</h3>
-                    <p><strong>Q: 不需要注册账号吗？</strong><br>A: 完全不需要！所有功能免费使用，无需登录。</p>
-                    <p><strong>Q: 我的图片会被上传吗？</strong><br>A: 不会。所有处理都在您的浏览器本地完成，图片不会离开您的设备。</p>
-                    <p><strong>Q: 可以商用吗？</strong><br>A: 可以！生成的文件您拥有完全使用权。</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 通知容器 -->
-    <div id="toastContainer" class="toast-container"></div>
 
     <!-- 侧边编辑面板 -->
     <div id="specEditPanel" class="spec-edit-panel">
@@ -1465,77 +536,129 @@
         </div>
     </div>
 
-    <div class="min-h-screen flex items-center justify-center bg-black">
-        <textarea id="svgInput"
-            class="w-full max-w-lg h-72 bg-neutral-900/40 border border-neutral-800/20 rounded-2xl p-8 text-sm font-mono text-neutral-500 placeholder-neutral-700/50 focus:outline-none focus:border-orange-500/20 transition-all duration-200 resize-none"
-            spellcheck="false"
-            placeholder="<svg>
-  <!-- 粘贴 SVG 代码 -->
-</svg>
+    <div class="max-w-6xl mx-auto w-full flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="flex justify-between items-end mb-10">
+            <div>
+                <h1 class="text-4xl font-black tracking-tighter text-white">设计印刷 <span
+                        class="movepath-orange"> 引擎</span></h1>
+                <p class="text-gray-500 text-xs mt-1 uppercase tracking-widest">Professional Visual Synthesis System
+                    v1.1</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-500 hidden sm:inline">深色</span>
+                    <div id="themeToggle" class="theme-toggle" title="切换深浅主题"></div>
+                    <span class="text-[10px] text-gray-500 hidden sm:inline">浅色</span>
+                </div>
+                <span class="text-[10px] text-gray-600 font-mono hidden md:block">PRINT_READY_BUILD_2026</span>
+            </div>
+        </header>
 
-Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
+        <main class="grid lg:grid-cols-12 gap-10 flex-1">
+            <!-- Left: Preview -->
+            <div class="lg:col-span-7 flex flex-col">
+                <div id="canvasContainer"
+                    class="bg-black rounded-xl overflow-hidden relative min-h-[400px] flex items-center justify-center">
+                    <div id="emptyState" class="text-center p-10">
+                        <div class="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-sm">等待设计载入...</p>
+                    </div>
+                    <!-- SVG 设计稿将注入此处 -->
+                </div>
+            </div>
 
-        <input type="file" id="imageUploader" class="hidden" accept="image/*">
-        <div id="canvasContainer" class="hidden"></div>
-        <button id="pdfBtn" class="hidden">导出 PDF</button>
+            <!-- Right: Controls -->
+            <div class="lg:col-span-5 space-y-6">
+                <section class="glass p-6 rounded-2xl">
+                    <h3 class="font-bold text-sm mb-4 uppercase tracking-wider text-gray-400">Step 1. 载入原始图片</h3>
+                    <label
+                        class="upload-area rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group">
+                        <input type="file" id="imageUploader" class="hidden" accept="image/*">
+                        <div id="uploadUi" class="text-center">
+                            <p class="text-sm font-medium group-hover:text-white transition-colors">点击或拖拽上传</p>
+                            <p class="text-[10px] text-gray-500 mt-1">支持 JPG, PNG, WEBP (本地处理)</p>
+                        </div>
+                    </label>
+                </section>
+
+                <section class="glass p-6 rounded-2xl">
+                    <h3 class="font-bold text-sm mb-4 uppercase tracking-wider text-gray-400">Step 2. 注入设计代码 (SVG)</h3>
+                    <textarea id="svgInput"
+                        class="w-full h-32 bg-black/50 border border-gray-800 rounded-lg p-3 text-xs font-mono text-gray-400 focus:border-orange-500 outline-none transition-all"
+                        placeholder="在此粘贴来自 AI 的 SVG 代码..."></textarea>
+                    <button id="applyBtn"
+                        class="w-full mt-3 bg-white text-black text-sm font-bold py-2 rounded-lg hover:bg-gray-200 transition-all">应用并预览</button>
+                </section>
+
+                <!-- 导出按钮区域 -->
+                <div class="space-y-3">
+                    <div class="flex gap-4">
+                        <button id="editSpecBtn"
+                            class="flex-1 glass border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            印刷说明编辑
+                        </button>
+                        <button id="downloadBtn"
+                            class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all">导出源文件 (.svg)</button>
+                    </div>
+
+                    <!-- 位图导出按钮 -->
+                    <div class="flex gap-2">
+                        <button id="jpgBtn"
+                            class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"/></svg>
+                            导出 JPG
+                        </button>
+                        <button id="pngBtn"
+                            class="flex-1 border border-gray-700 hover:border-gray-500 text-white text-[11px] font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"/></svg>
+                            导出 PNG
+                        </button>
+                    </div>
+
+                    <!-- PDF 导出按钮 -->
+                    <button id="pdfBtn"
+                        class="w-full bg-movepath hover:bg-orange-600 text-white text-xs font-bold py-4 rounded-xl transition-all shadow-lg shadow-orange-900/40 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zM9 10h1V8H9v2zm10 2h-1.5V7h1.5c.83 0 1.5.67 1.5 1.5v3c0 .83-.67 1.5-1.5 1.5zm0-1.5V8.5h-1.5v2h1.5zM15 12h-1.5V7h3v1.5H15V10h1.5v1.5H15v.5zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" />
+                        </svg>
+                        导出印刷 PDF
+                    </button>
+                    <label class="flex items-center justify-center gap-2 text-[10px] text-gray-500 cursor-pointer mt-2 hover:text-gray-400 transition-colors">
+                        <input type="checkbox" id="bleedCheckbox" class="w-3 h-3 accent-orange-500 cursor-pointer">
+                        保留出血线导出 (3mm)
+                    </label>
+                    <p class="text-[10px] text-center text-gray-600 mt-1">自动生成印前技术规格页</p>
+                </div>
+
+                <footer class="pt-4 border-t border-gray-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <p class="text-[10px] text-gray-600 font-mono">ENGINE_STATUS: PRINT_READY / VI_COMPLIANT</p>
+                    </div>
+                </footer>
+            </div>
+        </main>
     </div>
 
     <script>
-        // ========== 通知系统 ==========
-        const toastContainer = document.getElementById('toastContainer');
-
-        function showToast(type, title, message) {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-
-            const icons = {
-                success: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
-                error: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
-                info: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
-            };
-
-            toast.innerHTML = `
-                <div class="toast-icon">${icons[type]}</div>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-            `;
-
-            toastContainer.appendChild(toast);
-
-            // 3秒后自动移除
-            setTimeout(() => {
-                toast.classList.add('removing');
-                setTimeout(() => {
-                    if (toast.parentElement) {
-                        toast.parentElement.removeChild(toast);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
         const imageUploader = document.getElementById('imageUploader');
         const svgInput = document.getElementById('svgInput');
         const applyBtn = document.getElementById('applyBtn');
         const canvasContainer = document.getElementById('canvasContainer');
+        const emptyState = document.getElementById('emptyState');
+        const uploadUi = document.getElementById('uploadUi');
         const loadingOverlay = document.getElementById('loadingOverlay');
-        const loadingText = document.getElementById('loadingText');
-        const progressBar = document.getElementById('progressBar');
-
-        // 更新加载步骤
-        function updateLoadingProgress(step, progress) {
-            progressBar.style.width = progress + '%';
-
-            // 标记已完成的步骤
-            for (let i = 1; i <= step; i++) {
-                const stepEl = document.getElementById('step' + i);
-                if (stepEl) {
-                    stepEl.classList.add('completed');
-                    stepEl.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
-                }
-            }
-        }
 
         // 印刷导出常量
         const BLEED_MM = 3;     // 标准印刷出血位 3mm
@@ -1752,14 +875,13 @@ Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
         // 处理文件的通用函数
         function handleFile(file) {
             if (!file || !file.type.startsWith('image/')) {
-                showToast('error', '上传失败', '请上传有效的图片文件（JPG、PNG、WEBP）');
+                alert('请上传有效的图片文件 (JPG/PNG/WEBP)');
                 return;
             }
             const reader = new FileReader();
             reader.onload = (event) => {
                 currentImageData = event.target.result;
                 uploadUi.innerHTML = `<p class="text-green-500 text-sm font-bold">✓ ${file.name}</p><p class="text-[10px] text-gray-500 mt-1">高清原图已载入</p>`;
-                showToast('success', '上传成功', `图片 "${file.name}" 已载入`);
                 updatePreview();
             };
             reader.readAsDataURL(file);
@@ -1786,42 +908,16 @@ Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
             if (file) handleFile(file);
         });
 
-        // 自动预览 SVG 代码
-        svgInput.addEventListener('input', () => {
-            const rawSvg = svgInput.value.trim();
-            if (!rawSvg) return;
-
-            // 清理并注入到隐藏容器
-            canvasContainer.innerHTML = rawSvg;
-            const svgElement = canvasContainer.querySelector('svg');
-
-            if (svgElement && currentImageData) {
-                const imageTag = svgElement.querySelector('image');
-                if (imageTag) {
-                    imageTag.setAttribute('href', currentImageData);
-                    imageTag.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', currentImageData);
-                }
-            }
-        });
-
-        // Ctrl+Enter 导出 PDF
-        svgInput.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                e.preventDefault();
-                document.getElementById('pdfBtn').click();
-            }
-            // Ctrl+I 上传图片
-            if (e.ctrlKey && e.key === 'i') {
-                e.preventDefault();
-                document.getElementById('imageUploader').click();
-            }
-        });
+        // 应用 SVG 代码
+        applyBtn.addEventListener('click', updatePreview);
 
         function updatePreview() {
             const rawSvg = svgInput.value.trim();
             if (!rawSvg) return;
 
-            // 清理并注入到隐藏容器
+            emptyState.style.display = 'none';
+
+            // 清理并注入
             canvasContainer.innerHTML = rawSvg;
             const svgElement = canvasContainer.querySelector('svg');
 
@@ -1832,8 +928,6 @@ Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
                     imageTag.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', currentImageData);
                 }
             }
-
-            showToast('success', '预览已更新', '设计已应用到画布');
         }
 
         // 高质量 PDF 导出逻辑 (使用 Canvas 方案保证视觉一致性)
@@ -1854,19 +948,14 @@ Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
             }
 
             loadingOverlay.style.display = 'flex';
-            loadingText.textContent = '正在生成印刷级 PDF...';
-            progressBar.style.width = '0%';
-            document.querySelectorAll('.loading-step').forEach(s => {
-                s.classList.remove('completed');
-                s.querySelector('svg').innerHTML = '<circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="4 4"/>';
-            });
+            loadingText.textContent = '正在渲染高清图像...';
 
             try {
                 const { jsPDF } = window.jspdf;
 
-                // 步骤 1: 准备环境
-                updateLoadingProgress(1, 20);
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // 获取出血线复选框状态
+                const includeBleed = document.getElementById('bleedCheckbox').checked;
+                const bleedMm = includeBleed ? BLEED_MM : 0;
 
                 // 获取 SVG viewBox 原始尺寸和比例
                 const viewBox = svgElement.viewBox.baseVal;
@@ -1891,9 +980,6 @@ Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
                 // 渲染尺寸（使用原始SVG尺寸，不包含出血）
                 const renderWidthPx = widthPx;
                 const renderHeightPx = heightPx;
-
-                // 步骤 2: 处理设计文件
-                updateLoadingProgress(2, 50);
 
                 // 创建临时容器（原始尺寸）
                 const tempContainer = document.createElement('div');
@@ -1931,14 +1017,10 @@ Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
                 document.body.removeChild(tempContainer);
 
                 // 如果启用出血，使用边缘像素延伸法扩展canvas
-                updateLoadingProgress(2, 70);
-
                 if (includeBleed && bleedPxScaled > 0) {
                     canvas = extendCanvasEdges(canvas, bleedPxScaled);
                 }
 
-                // 步骤 3: 生成印刷规格
-                updateLoadingProgress(3, 90);
                 loadingText.textContent = '正在生成 PDF 文件...';
 
                 // 裁切标记设置（仅在启用出血位时使用）
@@ -2105,11 +1187,7 @@ Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
                 pdf.addImage(specImgData, 'JPEG', 0, 0, 210, 297);
 
                 // 保存
-                updateLoadingProgress(3, 100);
                 pdf.save(`MovePath_Production_v1.1_${Date.now()}.pdf`);
-
-                // 显示成功通知
-                showToast('success', '导出成功', '印刷级 PDF 已生成，包含规格说明页');
 
             } catch (err) {
                 console.error(err);
@@ -2328,202 +1406,6 @@ Ctrl+I 上传 · Ctrl+Enter 导出"></textarea>
             const isLight = document.body.classList.contains('light-mode');
             localStorage.setItem('movepath-theme', isLight ? 'light' : 'dark');
         });
-
-        // ========== 帮助指南模态框 ==========
-        const guideModal = document.getElementById('guideModal');
-        const helpButton = document.getElementById('helpButton');
-        const closeGuideBtn = document.getElementById('closeGuideBtn');
-
-        // 打开指南
-        helpButton.addEventListener('click', () => {
-            guideModal.classList.add('active');
-        });
-
-        // 关闭指南
-        closeGuideBtn.addEventListener('click', () => {
-            guideModal.classList.remove('active');
-        });
-
-        // 点击背景关闭
-        guideModal.addEventListener('click', (e) => {
-            if (e.target === guideModal) {
-                guideModal.classList.remove('active');
-            }
-        });
-
-        // ESC 键关闭
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                guideModal.classList.remove('active');
-            }
-        });
-
-        // 首次访问自动显示指南（使用localStorage记录）
-        if (!localStorage.getItem('guide-shown')) {
-            setTimeout(() => {
-                guideModal.classList.add('active');
-                localStorage.setItem('guide-shown', 'true');
-            }, 1000);
-        }
-
-        // ========== 快捷模板功能 ==========
-        const templates = {
-            minimal: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200">
-                <defs>
-                    <clipPath id="clip-minimal">
-                        <rect width="800" height="1200" rx="20"/>
-                    </clipPath>
-                </defs>
-                <g clip-path="url(#clip-minimal)">
-                    <image href="" x="0" y="0" width="800" height="1200" preserveAspectRatio="xMidYMid slice"/>
-                    <rect x="0" y="0" width="800" height="1200" fill="rgba(0,0,0,0.3)"/>
-                    <rect x="60" y="900" width="680" height="2" fill="#F05F22"/>
-                    <text x="400" y="960" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="48" font-weight="bold">YOUR TITLE</text>
-                    <text x="400" y="1020" text-anchor="middle" fill="#ccc" font-family="Arial, sans-serif" font-size="24">Your subtitle here</text>
-                </g>
-            </svg>`,
-            typography: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200">
-                <defs>
-                    <clipPath id="clip-typo">
-                        <rect width="800" height="1200" rx="20"/>
-                    </clipPath>
-                </defs>
-                <g clip-path="url(#clip-typo)">
-                    <image href="" x="0" y="0" width="800" height="1200" preserveAspectRatio="xMidYMid slice"/>
-                    <rect x="0" y="0" width="800" height="1200" fill="rgba(0,0,0,0.5)"/>
-                    <text x="400" y="500" text-anchor="middle" fill="#fff" font-family="Arial Black, sans-serif" font-size="120" font-weight="900" letter-spacing="8">TITLE</text>
-                    <text x="400" y="580" text-anchor="middle" fill="#F05F22" font-family="Arial, sans-serif" font-size="32" font-weight="bold" letter-spacing="4">DESIGN 2024</text>
-                    <line x1="200" y1="620" x2="600" y2="620" stroke="#F05F22" stroke-width="3"/>
-                </g>
-            </svg>`,
-            frame: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200">
-                <defs>
-                    <clipPath id="clip-frame">
-                        <rect width="800" height="1200" rx="20"/>
-                    </clipPath>
-                </defs>
-                <g clip-path="url(#clip-frame)">
-                    <rect x="0" y="0" width="800" height="1200" fill="#1a1a1a"/>
-                    <image href="" x="50" y="50" width="700" height="900" preserveAspectRatio="xMidYMid slice" style="filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5))"/>
-                    <text x="400" y="1020" text-anchor="middle" fill="#fff" font-family="Georgia, serif" font-size="42" font-weight="bold">Your Title Here</text>
-                    <text x="400" y="1070" text-anchor="middle" fill="#999" font-family="Arial, sans-serif" font-size="18">Your description text goes here</text>
-                    <rect x="350" y="1100" width="100" height="3" fill="#F05F22"/>
-                </g>
-            </svg>`
-        };
-
-        // 模板卡片点击事件
-        document.querySelectorAll('.template-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const templateType = card.dataset.template;
-                const templateCode = templates[templateType];
-
-                if (templateCode) {
-                    svgInput.value = templateCode;
-
-                    // 添加视觉反馈
-                    card.style.background = 'rgba(240, 95, 34, 0.2)';
-                    setTimeout(() => {
-                        card.style.background = '';
-                    }, 300);
-
-                    // 显示通知
-                    const templateNames = {
-                        minimal: '极简海报',
-                        typography: '文字海报',
-                        frame: '相框海报'
-                    };
-                    showToast('success', '模板已应用', `已选择"${templateNames[templateType]}"模板`);
-
-                    // 自动预览
-                    updatePreview();
-                }
-            });
-        });
-
-        // ========== 键盘快捷键 ==========
-        document.addEventListener('keydown', (e) => {
-            // Ctrl/Cmd + Enter: 预览设计
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                if (svgInput.value.trim()) {
-                    updatePreview();
-                }
-            }
-
-            // Ctrl/Cmd + S: 导出 PDF
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                const svgElement = canvasContainer.querySelector('svg');
-                if (svgElement) {
-                    document.getElementById('pdfBtn').click();
-                }
-            }
-
-            // Ctrl/Cmd + O: 打开文件上传
-            if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
-                e.preventDefault();
-                imageUploader.click();
-            }
-
-            // ?: 打开帮助指南
-            if (e.key === '?' && !e.ctrlKey && !e.metaKey && svgInput !== document.activeElement) {
-                e.preventDefault();
-                guideModal.classList.add('active');
-            }
-
-            // 数字键 1-3: 快速选择模板
-            if (svgInput !== document.activeElement && !e.ctrlKey && !e.metaKey) {
-                if (e.key === '1') {
-                    e.preventDefault();
-                    document.querySelector('[data-template="minimal"]').click();
-                } else if (e.key === '2') {
-                    e.preventDefault();
-                    document.querySelector('[data-template="typography"]').click();
-                } else if (e.key === '3') {
-                    e.preventDefault();
-                    document.querySelector('[data-template="frame"]').click();
-                }
-            }
-        });
-
-        // 添加快捷键提示
-        const shortcutsTooltip = document.createElement('div');
-        shortcutsTooltip.style.cssText = `
-            position: fixed;
-            bottom: 90px;
-            right: 24px;
-            background: rgba(0, 0, 0, 0.9);
-            color: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            z-index: 39;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            max-width: 200px;
-        `;
-        shortcutsTooltip.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 8px;">⌨️ 快捷键</div>
-            <div style="line-height: 1.6;">
-                <div><kbd style="background: #333; padding: 2px 6px; border-radius: 3px;">?</kbd> 打开帮助</div>
-                <div><kbd style="background: #333; padding: 2px 6px; border-radius: 3px;">1-3</kbd> 选择模板</div>
-                <div><kbd style="background: #333; padding: 2px 6px; border-radius: 3px;">Ctrl+Enter</kbd> 预览</div>
-                <div><kbd style="background: #333; padding: 2px 6px; border-radius: 3px;">Ctrl+S</kbd> 导出PDF</div>
-            </div>
-        `;
-
-        // 鼠标悬停在帮助按钮上显示快捷键
-        helpButton.addEventListener('mouseenter', () => {
-            shortcutsTooltip.style.opacity = '1';
-        });
-
-        helpButton.addEventListener('mouseleave', () => {
-            shortcutsTooltip.style.opacity = '0';
-        });
-
-        document.body.appendChild(shortcutsTooltip);
     </script>
 </body>
 
